@@ -3,6 +3,8 @@ import { View, ScrollView, Text, StyleSheet, Pressable, Image } from "react-nati
 import { useRouter } from "expo-router";
 import AppInput from "../src/components/AppInput";
 import AppButton from "../src/components/AppButton";
+import AppAlert from "../src/components/AppAlert";
+import { registerResponsible } from "../src/services/auth";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -20,8 +22,13 @@ export default function RegisterScreen() {
   const [nameError, setNameError] = useState("");
   const [lastnameError, setLastnameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
 
-  function handleRegister() {
+  async function handleRegister() {
     let isValid = true;
 
     // Limpiar errores previos
@@ -31,6 +38,7 @@ export default function RegisterScreen() {
     setPhoneError("");
     setPasswordError("");
     setConfirmPasswordError(""); 
+    setFeedback(null);
 
 
     // 1. Validar Nombre
@@ -89,12 +97,32 @@ export default function RegisterScreen() {
       isValid = false;
     }
 
-    if (!isValid) {
+    if (!isValid || isSubmitting) {
       return;
     }
 
-    console.log("Validación de registro exitosa");
-    // Aquí puedes enviar los datos al backend
+    setIsSubmitting(true);
+    try {
+      await registerResponsible({
+        name: `${name.trim()} ${lastName.trim()}`,
+        email: email.trim(),
+        password,
+      });
+      setFeedback({
+        message: "Cuenta creada correctamente. Ya puedes iniciar sesión.",
+        variant: "success",
+      });
+    } catch (error) {
+      setFeedback({
+        message:
+          error instanceof Error
+            ? error.message
+            : "No se pudo crear la cuenta. Inténtalo nuevamente.",
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -120,6 +148,9 @@ export default function RegisterScreen() {
 
       {/* Formulario */}
       <View style={styles.form}>
+        {feedback && (
+          <AppAlert message={feedback.message} variant={feedback.variant} />
+        )}
         <AppInput
           label="Nombre"
           placeholder="Ingresa tu nombre"
@@ -196,7 +227,10 @@ export default function RegisterScreen() {
         </Pressable>
 
         <View style={styles.loginButton}>
-          <AppButton title="Crear cuenta" onPress={handleRegister} />
+          <AppButton
+            title={isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+            onPress={handleRegister}
+          />
         </View>
 
 
