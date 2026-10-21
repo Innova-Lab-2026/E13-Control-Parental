@@ -46,8 +46,11 @@ export default function LoginScreen() {
 
     setIsSubmitting(true);
     try {
-      await loginResponsible({ email: email.trim(), password });
-      setFeedback({ message: "Inicio de sesión exitoso.", variant: "success" });
+      const result = await loginResponsible({ email: email.trim(), password });
+      router.replace({
+        pathname: "/dashboard",
+        params: { name: result.responsible.name },
+      });
     } catch (error) {
       setFeedback({
         message:
