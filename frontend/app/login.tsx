@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
 import AppInput from "../src/components/AppInput";
 import AppButton from "../src/components/AppButton";
+import AppAlert from "../src/components/AppAlert";
+import { loginResponsible } from "../src/services/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -12,12 +14,18 @@ export default function LoginScreen() {
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    message: string;
+    variant: "success" | "error";
+  } | null>(null);
 
-  function handleLogin() {
+  async function handleLogin() {
     let isValid = true;
 
     setEmailError("");
     setPasswordError("");
+    setFeedback(null);
 
     if (!email.trim()) {
       setEmailError("El correo electrónico es obligatorio.");
@@ -32,11 +40,25 @@ export default function LoginScreen() {
       isValid = false;
     }
 
-    if (!isValid) {
+    if (!isValid || isSubmitting) {
       return;
     }
 
-    console.log("Validación correcta");
+    setIsSubmitting(true);
+    try {
+      await loginResponsible({ email: email.trim(), password });
+      setFeedback({ message: "Inicio de sesión exitoso.", variant: "success" });
+    } catch (error) {
+      setFeedback({
+        message:
+          error instanceof Error
+            ? error.message
+            : "No se pudo iniciar sesión. Inténtalo nuevamente.",
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -62,6 +84,9 @@ export default function LoginScreen() {
 
       {/* Formulario */}
       <View style={styles.form}>
+        {feedback && (
+          <AppAlert message={feedback.message} variant={feedback.variant} />
+        )}
         <AppInput
           label="Correo electrónico"
           placeholder="Ingresa tu correo electrónico"
@@ -96,7 +121,10 @@ export default function LoginScreen() {
         </Pressable>
 
         <View style={styles.loginButton}>
-          <AppButton title="Iniciar sesión" onPress={handleLogin} />
+          <AppButton
+            title={isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+            onPress={handleLogin}
+          />
         </View>
 
         {/* Separador */}
