@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import AppButton from "../src/components/AppButton";
+import AppButton from "../../src/components/AppButton";
 
 const dashboardSections = [
   {
