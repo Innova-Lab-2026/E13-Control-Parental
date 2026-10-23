@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { View, ScrollView, Text, StyleSheet, Pressable, Image } from "react-native";
+import {
+  View,
+  ScrollView,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+} from "react-native";
 import { useRouter } from "expo-router";
 import AppInput from "../src/components/AppInput";
 import AppButton from "../src/components/AppButton";
@@ -37,9 +44,7 @@ export default function RegisterScreen() {
     setEmailError("");
     setPhoneError("");
     setPasswordError("");
-    setConfirmPasswordError(""); 
-    setFeedback(null);
-
+    setConfirmPasswordError("");
 
     // 1. Validar Nombre
     if (!name.trim()) {
@@ -100,6 +105,7 @@ export default function RegisterScreen() {
     if (!isValid || isSubmitting) {
       return;
     }
+<<<<<<< Updated upstream
 
     setIsSubmitting(true);
     try {
@@ -123,6 +129,11 @@ export default function RegisterScreen() {
     } finally {
       setIsSubmitting(false);
     }
+=======
+    router.replace("/tutor/dashboard");
+    console.log("Validación de registro exitosa");
+    // Aquí puedes enviar los datos al backend
+>>>>>>> Stashed changes
   }
 
   return (
@@ -221,7 +232,7 @@ export default function RegisterScreen() {
 
         <Pressable
           style={styles.forgotContainer}
-         onPress={() => router.push("/login")}
+          onPress={() => router.push("/login")}
         >
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </Pressable>
@@ -233,18 +244,14 @@ export default function RegisterScreen() {
           />
         </View>
 
-
         {/* Registro */}
-        
-      
+
         <Pressable
           style={styles.forgotContainer}
-         onPress={() => router.push("/login")}
+          onPress={() => router.push("/login")}
         >
           <Text style={styles.registerPrompt}>¿Ya tienes una cuenta?</Text>
         </Pressable>
-
-        
       </View>
     </ScrollView>
   );

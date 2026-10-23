@@ -43,25 +43,9 @@ export default function LoginScreen() {
     if (!isValid || isSubmitting) {
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      const result = await loginResponsible({ email: email.trim(), password });
-      router.replace({
-        pathname: "/dashboard",
-        params: { name: result.responsible.name },
-      });
-    } catch (error) {
-      setFeedback({
-        message:
-          error instanceof Error
-            ? error.message
-            : "No se pudo iniciar sesión. Inténtalo nuevamente.",
-        variant: "error",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    //Usamos router.replace en lugar de router.push para limpiar la pila de navegación, evitando que el usuario pueda presionar el botón "Atrás" en su celular y regresar a la pantalla de login una vez que ya inició sesión.
+    router.replace("/tutor/dashboard");
+    console.log("Validación correcta");
   }
 
   return (
