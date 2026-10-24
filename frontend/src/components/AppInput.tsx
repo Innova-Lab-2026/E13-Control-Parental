@@ -4,6 +4,8 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  KeyboardTypeOptions,
+  
 } from "react-native";
 
 type AppInputProps = {
@@ -12,7 +14,7 @@ type AppInputProps = {
   value: string;
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
-  keyboardType?: "default" | "email-address";
+  keyboardType?: KeyboardTypeOptions;
   error?: string;
 };
 

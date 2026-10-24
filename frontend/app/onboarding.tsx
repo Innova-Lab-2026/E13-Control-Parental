@@ -55,7 +55,7 @@ export default function Onboarding() {
           <AppButton
             variant="tertiary"
             title="Omitir"
-            onPress={() => router.replace("/")}
+            onPress={() => router.replace("/login")}
           />
         </Pressable>
 
