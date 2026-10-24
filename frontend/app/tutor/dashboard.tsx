@@ -190,7 +190,21 @@ export default function DashboardScreen() {
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
         Requiere tu atención
       </Text>
-      <View style={styles.alertCard}>
+      
+      {/* TODO BACKEND: Dinamizar esta tarjeta con la alerta crítica o no leída de GET /api/v1/alerts */}
+      <Pressable 
+        style={styles.alertCard}
+        onPress={() => router.push({
+          pathname: "/tutor/alert-detail",
+          params: {
+            title: "¡Requiere tu atención!",
+            subtitle: "Paula desinstaló la aplicación",
+            device: "Paula",
+            time: "13:00",
+            type: "danger"
+          }
+        })}
+      >
         <View style={styles.alertIconContainer}>
           <Text style={styles.alertIcon}>⚠️</Text>
         </View>
@@ -202,7 +216,7 @@ export default function DashboardScreen() {
           <Text style={styles.alertTime}>13:00</Text>
         </View>
         <Text style={styles.alertArrow}>›</Text>
-      </View>
+      </Pressable>
 
       {/* Encabezado sección Historial */}
       <View style={styles.sectionHeader}>
@@ -517,7 +531,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
-    unreadNotification: {
+  unreadNotification: {
     backgroundColor: "#F9FAFB",
   },
   notifTitle: {
