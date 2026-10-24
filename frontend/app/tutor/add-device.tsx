@@ -1,6 +1,6 @@
 // app/tutor/add-device.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,22 +44,34 @@ export default function AddDeviceScreen() {
     setShowPicker(false);
   };
 
-  const handlePickImage = async () => {
+  // --- SECCIÓN DE FOTO DE PERFIL / AVATAR (MOCK & TODO BACKEND) ---
+  const handlePickImage = () => {
+    // MOCK: Interacción visual para el usuario actual
+    Alert.alert(
+      "Próximamente",
+      "Pronto podrás subir o cambiar la foto de perfil del dispositivo.",
+      [{ text: "Entendido" }]
+    );
+
     /* 
       TODO BACKEND / NATIVO: 
-      Para abrir la galería con expo-image-picker:
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
+      Estructura lista para implementar expo-image-picker y envío al servidor cuando se habilite el módulo:
+      
+      async function pickImageFromDevice() {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
 
-      if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+        if (!result.canceled) {
+          setProfileImage(result.assets[0].uri);
+          // TODO BACKEND: Adjuntar la imagen en el FormData de registro del dispositivo
+        }
       }
+      pickImageFromDevice();
     */
-    console.log("Abriendo selector de imágenes del dispositivo...");
   };
 
   const handleAgregar = async () => {
@@ -68,10 +80,13 @@ export default function AddDeviceScreen() {
     setLoading(true);
     try {
       /*
-        TODO BACKEND: Enviar datos al servidor
+        TODO BACKEND: Enviar datos completos del perfil (incluyendo imagen/avatar si aplica)
         const formData = new FormData();
         formData.append('deviceName', deviceName);
         formData.append('birthDate', birthDateString);
+        if (profileImage) {
+          formData.append('profileImage', { uri: profileImage, name: 'avatar.jpg', type: 'image/jpeg' } as any);
+        }
       */
 
       const res = await requestLinkingPin(deviceName, 'Android');

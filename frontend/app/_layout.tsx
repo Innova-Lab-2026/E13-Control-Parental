@@ -13,13 +13,9 @@ export default function RootLayout() {
       <Stack.Screen name="onboarding2" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
-<<<<<<< Updated upstream
+
       
-=======
-      <Stack.Screen name="tutor/dashboard" />
-      <Stack.Screen name="tutor/devices" />
-      <Stack.Screen name="tutor/device-detail" />
->>>>>>> Stashed changes
+
     </Stack>
   );
 }

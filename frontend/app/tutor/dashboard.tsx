@@ -1,11 +1,11 @@
 // app/tutor/dashboard.tsx
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import { View, Text, StyleSheet, FlatList, Pressable, Image, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Componentes reutilizables reales del proyecto (importamos DeviceStatus para el tipado correcto)
+// Componentes reutilizables reales del proyecto
 import DeviceItem, { DeviceStatus } from "../../src/components/DeviceItem";
 import AddDeviceButton from "../../src/components/AddDeviceButton";
 import BottomNavigation from "../../src/components/BottomNavigation";
@@ -15,7 +15,7 @@ import GreetingHeader from "../../src/components/GreetingHeader";
 interface Device {
   id: string;
   name: string;
-  status: DeviceStatus; // Sincronizado con los estados permitidos del componente DeviceItem
+  status: DeviceStatus;
 }
 
 interface HistoryLog {
@@ -26,17 +26,46 @@ interface HistoryLog {
   icon: string;
 }
 
+// TODO BACKEND: Estructura esperada para el modelo de notificaciones de la API
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState("inicio");
 
-  // --- DATOS SIMULADOS (MOCK) ---
-  // TODO BACKEND: Reemplazar por estado proveniente de la API (por ej. con useEffect / React Query / Context)
+  // --- ESTADOS Y DATOS MOCK (MOCK DATA) ---
   const [user] = useState({ name: "Claudia!" });
+  
+  // Estado para controlar la visibilidad del panel/modal de notificaciones
+  const [isNotificationModalVisible, setIsNotificationModalVisible] = useState(false);
+
+  // TODO BACKEND: Reemplazar este estado inicial por un fetch a GET /api/v1/notifications
+  const [notifications, setNotifications] = useState<NotificationItem[]>([
+    {
+      id: "1",
+      title: "Desinstalación detectada",
+      message: "Paula desinstaló la aplicación de control parental.",
+      time: "13:00",
+      read: false,
+    },
+    {
+      id: "2",
+      title: "Intento de sitio bloqueado",
+      message: "Ramiro intentó acceder a un sitio de apuestas.",
+      time: "14:25",
+      read: true,
+    },
+  ]);
 
   const [devices] = useState<Device[]>([
     { id: "1", name: "Paula", status: "active" },
-    { id: "2", name: "Ramiro", status: "pending" }, // Cambiado a 'pending' o 'active' según corresponda
+    { id: "2", name: "Ramiro", status: "pending" },
   ]);
 
   const [historyLogs] = useState<HistoryLog[]>([
@@ -57,16 +86,18 @@ export default function DashboardScreen() {
   ]);
 
   /* 
-    TODO BACKEND: Ejemplo de llamado HTTP para obtener datos dinámicos:
+    TODO BACKEND: Ejemplo de llamado HTTP para sincronizar datos del dashboard y notificaciones:
     useEffect(() => {
       async function loadDashboardData() {
         try {
-          const response = await fetch('https://api.baprotege.gob.ar/v1/tutor/dashboard');
+          const response = await fetch('https://api.baprotege.gob.ar/v1/tutor/dashboard', {
+            headers: { Authorization: `Bearer ${userToken}` }
+          });
           const data = await response.json();
           // setDevices(data.devices);
-          // setHistoryLogs(data.history);
+          // setNotifications(data.notifications);
         } catch (error) {
-          console.error("Error al obtener los datos:", error);
+          console.error("Error al obtener los datos del dashboard:", error);
         }
       }
       loadDashboardData();
@@ -87,18 +118,34 @@ export default function DashboardScreen() {
     if (tabId === "configuracion") router.push("/tutor/settings");
   };
 
+  // TODO BACKEND: Función para marcar notificación como leída en la API (PATCH /api/v1/notifications/:id)
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(item => (item.id === id ? { ...item, read: true } : item))
+    );
+  };
+
   // --- CABECERA DE LA LISTA PRINCIPAL ---
   const renderListHeader = () => (
     <View>
       {/* Top Bar: Isologotipo de la App y Alerta de Notificaciones */}
       <View style={styles.topBar}>
-        <View style={styles.brandBadge}>
-          <Text style={styles.brandText}>BA Protege+</Text>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../assets/protege-01.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
-        <View style={styles.notificationBadge}>
+
+        {/* Botón interactivo para abrir Mis Alertas */}
+        <Pressable 
+          style={styles.notificationBadge} 
+          onPress={() => router.push("/tutor/alerts")}
+        >
           <Text style={styles.bellIcon}>🔔</Text>
-          <View style={styles.notificationDot} />
-        </View>
+          {notifications.some(n => !n.read) && <View style={styles.notificationDot} />}
+        </Pressable>
       </View>
 
       {/* Saludo componente */}
@@ -165,7 +212,7 @@ export default function DashboardScreen() {
         </Pressable>
       </View>
 
-      {/* FlatList secundario para el historial (optimizado para rendimiento) */}
+      {/* FlatList secundario para el historial */}
       <FlatList
         data={historyLogs}
         keyExtractor={(item) => item.id}
@@ -187,10 +234,9 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Barra de estado nativa e invisible en el flujo visual */}
       <StatusBar style="dark" />
 
-      {/* FlatList principal optimizado para renders escalables */}
+      {/* FlatList principal */}
       <FlatList
         data={devices}
         keyExtractor={(item) => item.id}
@@ -206,6 +252,47 @@ export default function DashboardScreen() {
           />
         )}
       />
+
+      {/* --- PANEL / MODAL DE NOTIFICACIONES --- */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isNotificationModalVisible}
+        onRequestClose={() => setIsNotificationModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Notificaciones</Text>
+              <Pressable onPress={() => setIsNotificationModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </Pressable>
+            </View>
+
+            {/* Lista de Notificaciones (Mock / Backend Ready) */}
+            <FlatList
+              data={notifications}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Pressable 
+                  style={[styles.notificationItem, !item.read && styles.unreadNotification]}
+                  onPress={() => handleMarkAsRead(item.id)}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.notifTitle}>{item.title}</Text>
+                    <Text style={styles.notifMessage}>{item.message}</Text>
+                    <Text style={styles.notifTime}>{item.time}</Text>
+                  </View>
+                  {!item.read && <View style={styles.blueDot} />}
+                </Pressable>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>No tenés notificaciones nuevas.</Text>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* Navegación Inferior fija */}
       <BottomNavigation activeTab={currentTab} onTabPress={handleTabPress} />
@@ -229,16 +316,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 16,
   },
-  brandBadge: {
-    backgroundColor: "#FFD500",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+  logoContainer: {
+    justifyContent: "center",
   },
-  brandText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#1C1C1C",
+  logoImage: {
+    width: 120,
+    height: 40,
   },
   notificationBadge: {
     width: 36,
@@ -260,19 +343,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: "#DC2626",
-  },
-  greetingContainer: {
-    marginBottom: 20,
-  },
-  greetingTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1F2937",
-  },
-  greetingSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 2,
   },
   statusCard: {
     flexDirection: "row",
@@ -409,5 +479,71 @@ const styles = StyleSheet.create({
   historyArrow: {
     fontSize: 18,
     color: "#9CA3AF",
+  },
+  // Estilos del Modal de Notificaciones
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: "70%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+  },
+  closeButton: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#6B7280",
+    padding: 4,
+  },
+  notificationItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+    unreadNotification: {
+    backgroundColor: "#F9FAFB",
+  },
+  notifTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1F2937",
+  },
+  notifMessage: {
+    fontSize: 13,
+    color: "#4B5563",
+    marginTop: 2,
+  },
+  notifTime: {
+    fontSize: 11,
+    color: "#9CA3AF",
+    marginTop: 4,
+  },
+  blueDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#2563EB",
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#9CA3AF",
+    paddingVertical: 20,
   },
 });
