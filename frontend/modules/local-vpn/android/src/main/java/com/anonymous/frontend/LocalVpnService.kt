@@ -35,10 +35,9 @@ class LocalVpnService : VpnService() {
         private const val MAX_PACKET_SIZE = 32767
         private const val MAX_DNS_PACKET_SIZE = 4096
         private val BLOCKED_DOMAINS = setOf(
-            "example.com",
-            "example.org",
-            "example.net",
-            "afip.gob.ar"
+            "bpplay.bet.ar",
+            "gambeta.ia",
+            "marval.com"
         )
 
         fun createIntent(context: Context): Intent =
@@ -117,7 +116,7 @@ class LocalVpnService : VpnService() {
         return builder
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setContentTitle("Protección VPN activa")
-            .setContentText("Filtrado DNS de dominios de prueba")
+            .setContentText("Filtrado DNS de dominios configurados")
             .setOngoing(true)
             .build()
     }

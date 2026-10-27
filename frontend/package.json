@@ -2,6 +2,18 @@
   "name": "frontend",
   "version": "1.0.0",
   "main": "expo-router/entry",
+
+  "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": [
+          "expo-ui",
+          "expo-file-system"
+        ]
+      }
+    }
+  },
+
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
     "expo": "~57.0.31",

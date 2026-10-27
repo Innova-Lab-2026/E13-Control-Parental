@@ -76,7 +76,7 @@ export default function ConfiguracionScreen() {
         <View style={styles.textContainer}>
           <Text style={styles.cardTitle}>Protección VPN</Text>
           <Text style={styles.description}>
-            Filtra por DNS los dominios de prueba configurados.
+            Bloquea por DNS los sitios seleccionados mientras la VPN está activa.
           </Text>
           <Text style={styles.status}>
             Estado: {vpnEnabled ? "Activada" : "Desactivada"}
@@ -93,7 +93,7 @@ export default function ConfiguracionScreen() {
       </View>
 
       <Text style={styles.note}>
-        La demo bloquea example.com, example.org y example.net, incluidos sus
+        Se bloquean bpplay.bet.ar, gambeta.ia y marval.com, incluidos sus
         subdominios. El filtrado es por DNS: apps con DNS cifrado propio o
         direcciones IP guardadas pueden evitarlo.
       </Text>
