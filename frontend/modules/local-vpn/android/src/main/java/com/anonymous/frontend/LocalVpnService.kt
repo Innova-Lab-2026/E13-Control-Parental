@@ -35,6 +35,7 @@ class LocalVpnService : VpnService() {
         private const val MAX_PACKET_SIZE = 32767
         private const val MAX_DNS_PACKET_SIZE = 4096
         private val BLOCKED_DOMAINS = setOf(
+            "bplay.bet.ar",
             "bpplay.bet.ar",
             "gambeta.ia",
             "marval.com"
