@@ -9,11 +9,11 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import HistoryCard from "../../src/components/historial/HistoryCard";
+import HistoryCard from "../../../src/components/historial/HistoryCard";
 import HistoryFilters, {
   type HistoryCategory,
-} from "../../src/components/historial/HistoryFilters";
-import { historyData } from "../../src/data/historyData";
+} from "../../../src/components/historial/HistoryFilters";
+import { historyData } from "../../../src/data/historyData";
 
 export default function HistorialScreen() {
   const [selectedCategory, setSelectedCategory] =

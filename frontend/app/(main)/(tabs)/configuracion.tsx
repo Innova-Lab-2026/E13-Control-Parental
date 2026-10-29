@@ -9,7 +9,7 @@ import {
   Platform,
   AppState,
 } from "react-native";
-import LocalVpnModule from "../../modules/local-vpn";
+import LocalVpnModule from "../../../modules/local-vpn";
 
 export default function ConfiguracionScreen() {
   const [vpnEnabled, setVpnEnabled] = useState(false);

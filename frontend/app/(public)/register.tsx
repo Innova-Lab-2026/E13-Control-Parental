@@ -1,42 +1,99 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, Pressable, Image } from "react-native";
+import { View, ScrollView, Text, StyleSheet, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
-import AppInput from "../src/components/AppInput";
-import AppButton from "../src/components/AppButton";
-import AppAlert from "../src/components/AppAlert";
-import { loginResponsible } from "../src/services/auth";
+import AppInput from "../../src/components/AppInput";
+import AppButton from "../../src/components/AppButton";
+import AppAlert from "../../src/components/AppAlert";
+import { registerResponsible } from "../../src/services/auth";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const router = useRouter();
 
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [lastnameError, setLastnameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     message: string;
     variant: "success" | "error";
   } | null>(null);
 
-  async function handleLogin() {
+  async function handleRegister() {
     let isValid = true;
 
+    // Limpiar errores previos
+    setNameError("");
+    setLastnameError("");
     setEmailError("");
+    setPhoneError("");
     setPasswordError("");
+    setConfirmPasswordError(""); 
     setFeedback(null);
 
+
+    // 1. Validar Nombre
+    if (!name.trim()) {
+      setNameError("El nombre es obligatorio.");
+      isValid = false;
+    } else if (name.trim().length < 2) {
+      setNameError("El nombre debe tener al menos 2 caracteres.");
+      isValid = false;
+    }
+
+    // 2. Validar Apellido
+    if (!lastName.trim()) {
+      setLastnameError("El apellido es obligatorio.");
+      isValid = false;
+    } else if (lastName.trim().length < 2) {
+      setLastnameError("El apellido debe tener al menos 2 caracteres.");
+      isValid = false;
+    }
+
+    // 3. Validar Correo Electrónico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       setEmailError("El correo electrónico es obligatorio.");
       isValid = false;
-    } else if (!email.includes("@")) {
+    } else if (!emailRegex.test(email)) {
       setEmailError("Ingresá un correo electrónico válido.");
       isValid = false;
     }
 
+    // 4. Validar Teléfono
+    const phoneRegex = /^[0-9+\s()-]{7,15}$/;
+    if (!phone.trim()) {
+      setPhoneError("El teléfono es obligatorio.");
+      isValid = false;
+    } else if (!phoneRegex.test(phone)) {
+      setPhoneError("Ingresá un número de teléfono válido.");
+      isValid = false;
+    }
+
+    // 5. Validar Contraseña principal
     if (!password.trim()) {
       setPasswordError("La contraseña es obligatoria.");
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres.");
+      isValid = false;
+    }
+
+    // 6. Validar Confirmación de Contraseña (¡NUEVO!)
+    if (!confirmPassword.trim()) {
+      setConfirmPasswordError("Debes confirmar la contraseña.");
+      isValid = false;
+    } else if (confirmPassword !== password) {
+      setConfirmPasswordError("Las contraseñas no coinciden.");
       isValid = false;
     }
 
@@ -46,17 +103,21 @@ export default function LoginScreen() {
 
     setIsSubmitting(true);
     try {
-      const result = await loginResponsible({ email: email.trim(), password });
-      router.replace({
-        pathname: "/dashboard",
-        params: { name: result.responsible.name },
+      await registerResponsible({
+        name: `${name.trim()} ${lastName.trim()}`,
+        email: email.trim(),
+        password,
+      });
+      setFeedback({
+        message: "Cuenta creada correctamente. Ya puedes iniciar sesión.",
+        variant: "success",
       });
     } catch (error) {
       setFeedback({
         message:
           error instanceof Error
             ? error.message
-            : "No se pudo iniciar sesión. Inténtalo nuevamente.",
+            : "No se pudo crear la cuenta. Inténtalo nuevamente.",
         variant: "error",
       });
     } finally {
@@ -65,11 +126,11 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require("../assets/protege-01.png")}
+          source={require("../../assets/protege-01.png")}
           style={styles.loteriaImage}
           resizeMode="contain"
         />
@@ -77,11 +138,11 @@ export default function LoginScreen() {
 
       {/* Encabezado */}
       <View style={styles.header}>
-        <Text style={styles.title}>Te damos la bienvenida</Text>
+        <Text style={styles.title}>Crear cuenta</Text>
 
         <Text style={styles.subtitle}>
-          Iniciá sesión para acompañar y proteger{"\n"}a tu familia en el mundo
-          digital.
+          Completa tus datos para crear tu cuenta y comensa a {"\n"} proteger a
+          tu familia.
         </Text>
       </View>
 
@@ -91,7 +152,28 @@ export default function LoginScreen() {
           <AppAlert message={feedback.message} variant={feedback.variant} />
         )}
         <AppInput
-          label="Correo electrónico"
+          label="Nombre"
+          placeholder="Ingresa tu nombre"
+          value={name}
+          onChangeText={(text) => {
+            setName(text);
+            setNameError("");
+          }}
+          error={nameError}
+        />
+
+        <AppInput
+          label="Apellido"
+          placeholder="Ingresa tu apellido"
+          value={lastName}
+          onChangeText={(text) => {
+            setLastName(text);
+            setLastnameError("");
+          }}
+          error={lastnameError}
+        />
+        <AppInput
+          label="Mail"
           placeholder="Ingresa tu correo electrónico"
           value={email}
           onChangeText={(text) => {
@@ -100,6 +182,17 @@ export default function LoginScreen() {
           }}
           keyboardType="email-address"
           error={emailError}
+        />
+
+        <AppInput
+          label="Teléfono"
+          placeholder="Ingresa tu teléfono"
+          value={phone}
+          onChangeText={(text) => {
+            setPhone(text);
+            setPhoneError("");
+          }}
+          error={phoneError}
         />
 
         <AppInput
@@ -114,53 +207,46 @@ export default function LoginScreen() {
           error={passwordError}
         />
 
+        <AppInput
+          label=" Confirmar Contraseña"
+          placeholder="Ingresa tu contraseña"
+          value={confirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            setConfirmPasswordError("");
+          }}
+          secureTextEntry
+          error={confirmPasswordError}
+        />
+
         <Pressable
           style={styles.forgotContainer}
-          onPress={() => {
-            console.log("Recuperar contraseña");
-          }}
+         onPress={() => router.push("/login")}
         >
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </Pressable>
 
         <View style={styles.loginButton}>
           <AppButton
-            title={isSubmitting ? "Ingresando..." : "Iniciar sesión"}
-            onPress={handleLogin}
+            title={isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+            onPress={handleRegister}
           />
         </View>
 
-        {/* Separador */}
-        <View style={styles.separator}>
-          <View style={styles.separatorLine} />
-          <Text style={styles.separatorText}>o</Text>
-          <View style={styles.separatorLine} />
-        </View>
-
-        {/* Google */}
-        <Pressable
-          style={styles.googleButton}
-          onPress={() => {
-            console.log("Continuar con Google");
-          }}
-        >
-          <Text style={styles.googleIcon}>G</Text>
-          <Text style={styles.googleText}>Continuar con Google</Text>
-        </Pressable>
 
         {/* Registro */}
-        <Text style={styles.registerPrompt}>
-          ¿Todavía no tienes una cuenta?
-        </Text>
-
+        
+      
         <Pressable
-          style={styles.registerButton}
-          onPress={() => router.push("/register")}
+          style={styles.forgotContainer}
+         onPress={() => router.push("/login")}
         >
-          <Text style={styles.registerText}>Crear cuenta</Text>
+          <Text style={styles.registerPrompt}>¿Ya tienes una cuenta?</Text>
         </Pressable>
+
+        
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

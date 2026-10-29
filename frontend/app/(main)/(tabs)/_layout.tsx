@@ -25,8 +25,8 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: "Inicio",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" color={color} size={size} />
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons name="home" color={focused ? "#FFCC00" : "#686868"} size={size} />
           ),
         }}
       />
@@ -35,8 +35,12 @@ export default function TabsLayout() {
         name="dispositivos"
         options={{
           title: "Dispositivos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="phone-portrait-outline" color={color} size={size} />
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="phone-portrait-outline"
+              color={focused ? "#FFCC00" : "#686868"}
+              size={size}
+            />
           ),
         }}
       />
@@ -45,8 +49,12 @@ export default function TabsLayout() {
         name="historial"
         options={{
           title: "Historial",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time-outline" color={color} size={size} />
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="time-outline"
+              color={focused ? "#FFCC00" : "#686868"}
+              size={size}
+            />
           ),
         }}
       />
@@ -55,8 +63,12 @@ export default function TabsLayout() {
         name="configuracion"
         options={{
           title: "Configuración",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" color={color} size={size} />
+          tabBarIcon: ({ focused, size }) => (
+            <Ionicons
+              name="settings-outline"
+              color={focused ? "#FFCC00" : "#686868"}
+              size={size}
+            />
           ),
         }}
       />
