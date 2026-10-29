@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { View, ScrollView, Text, StyleSheet, Pressable, Image } from "react-native";
+import {
+  View,
+  ScrollView,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+} from "react-native";
 import { useRouter } from "expo-router";
 import AppInput from "../src/components/AppInput";
 import AppButton from "../src/components/AppButton";
@@ -37,9 +44,7 @@ export default function RegisterScreen() {
     setEmailError("");
     setPhoneError("");
     setPasswordError("");
-    setConfirmPasswordError(""); 
-    setFeedback(null);
-
+    setConfirmPasswordError("");
 
     // 1. Validar Nombre
     if (!name.trim()) {
@@ -100,29 +105,9 @@ export default function RegisterScreen() {
     if (!isValid || isSubmitting) {
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await registerResponsible({
-        name: `${name.trim()} ${lastName.trim()}`,
-        email: email.trim(),
-        password,
-      });
-      setFeedback({
-        message: "Cuenta creada correctamente. Ya puedes iniciar sesión.",
-        variant: "success",
-      });
-    } catch (error) {
-      setFeedback({
-        message:
-          error instanceof Error
-            ? error.message
-            : "No se pudo crear la cuenta. Inténtalo nuevamente.",
-        variant: "error",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    router.replace("/tutor/dashboard");
+    console.log("Validación de registro exitosa");
+    // Aquí puedes enviar los datos al backend
   }
 
   return (
@@ -221,7 +206,7 @@ export default function RegisterScreen() {
 
         <Pressable
           style={styles.forgotContainer}
-         onPress={() => router.push("/login")}
+          onPress={() => router.push("/login")}
         >
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </Pressable>
@@ -233,18 +218,14 @@ export default function RegisterScreen() {
           />
         </View>
 
-
         {/* Registro */}
-        
-      
+
         <Pressable
           style={styles.forgotContainer}
-         onPress={() => router.push("/login")}
+          onPress={() => router.push("/login")}
         >
           <Text style={styles.registerPrompt}>¿Ya tienes una cuenta?</Text>
         </Pressable>
-
-        
       </View>
     </ScrollView>
   );

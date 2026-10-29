@@ -11,20 +11,24 @@ type AppButtonProps = {
   variant?: "primary" |
            "secondary"|
            "tertiary";
+           disabled?: boolean;
 };
 
 export default function AppButton({
   title,
   onPress,
   variant = "primary",
+  disabled = false,
 }: AppButtonProps) {
   return (
     <Pressable
       style={[
         styles.button,
         styles[variant],
+        disabled && styles.disabled
       ]}
       onPress={onPress}
+      disabled={disabled}
     >
       <Text
         style={[
@@ -65,5 +69,8 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     color: "#1F2937",
+  },
+  disabled: {
+    backgroundColor: "#CCCCCC",
   },
 });
