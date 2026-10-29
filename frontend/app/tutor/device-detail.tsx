@@ -35,7 +35,7 @@ export default function DeviceDetailScreen() {
 
   // --- DATOS SIMULADOS (MOCK) ---
   // TODO BACKEND: Obtener la información general y métricas del dispositivo usando `deviceId` desde la API
-  const [deviceInfo] = useState<DeviceDetailData>({
+  const [deviceInfo, setDeviceInfo] = useState<DeviceDetailData>({
     name: displayName,
     platform: 'Android',
     age: 14,
@@ -43,7 +43,7 @@ export default function DeviceDetailScreen() {
   });
 
   // TODO BACKEND: Obtener el historial detallado de actividad específica de este dispositivo
-  const [activityLogs] = useState<ActivityLog[]>([
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([
     {
       id: '1',
       title: 'Sitio bloqueado',

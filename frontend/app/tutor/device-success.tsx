@@ -5,6 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// Componentes reutilizables reales del proyecto
+import AppHeader from '../../src/components/AppHeader';
 import AppButton from '../../src/components/AppButton';
 import BottomNavigation from '../../src/components/BottomNavigation';
 
@@ -25,6 +27,14 @@ export default function DeviceSuccessScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
+
+      {/* Encabezado con barra de navegación superior y botón de volver */}
+      <View style={styles.headerContainer}>
+        <AppHeader 
+          title="Vinculación" 
+          onBackPress={() => router.push('/role-selection')} 
+        />
+      </View>
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>¡Dispositivo creado!</Text>
@@ -56,9 +66,16 @@ export default function DeviceSuccessScreen() {
 
         <View style={styles.buttonContainer}>
           <AppButton
+            title="Ir a Vincular como Menor"
+            onPress={() => router.push('/role-selection')}
+          />
+
+        <View style={styles.secondaryButtonSpacing}>
+          <AppButton
             title="Volver a Mis Dispositivos"
             onPress={() => router.push('/tutor/devices')}
-          />
+            />
+            </View>
         </View>
       </ScrollView>
 
@@ -74,6 +91,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   container: {
     flexGrow: 1,
@@ -168,5 +189,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     marginTop: 16,
+  },
+  secondaryButtonSpacing: {
+    marginTop: 12,
   },
 });

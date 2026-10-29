@@ -73,7 +73,7 @@ export default function AlertsScreen() {
 
   const handleTabPress = (tabId: string) => {
     setCurrentTab(tabId);
-    if (tabId === "inicio") router.push("/tutor/dashboard");
+    if (tabId === "home") router.push("/tutor/dashboard");
     if (tabId === "dispositivos") router.push("/tutor/devices");
     if (tabId === "historial") router.push("/tutor/history");
     if (tabId === "configuracion") router.push("/tutor/settings");
