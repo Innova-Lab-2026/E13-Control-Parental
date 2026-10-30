@@ -1,6 +1,15 @@
 // app/tutor/dashboard.tsx
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable, Image, Modal } from "react-native";
+import {
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  Image,
+  Modal,
+} from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -59,6 +68,21 @@ export default function DashboardScreen() {
 
   const historyLogs = getHistoryEvents().slice(0, 2);
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Cerrar sesión",
+      "¿Quieres salir de tu cuenta?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cerrar sesión",
+          style: "destructive",
+          onPress: () => router.replace("/login"),
+        },
+      ],
+    );
+  };
+
   // TODO BACKEND: Función para marcar notificación como leída en la API (PATCH /api/v1/notifications/:id)
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev =>
@@ -79,14 +103,26 @@ export default function DashboardScreen() {
           />
         </View>
 
-        {/* Botón interactivo para abrir Mis Alertas */}
-        <Pressable
-          style={styles.notificationBadge}
-          onPress={() => router.push("/(main)/(tabs)/(dashboard)/alerts")}
-        >
-          <Text style={styles.bellIcon}>🔔</Text>
-          {notifications.some(n => !n.read) && <View style={styles.notificationDot} />}
-        </Pressable>
+        <View style={styles.topBarActions}>
+          <Pressable
+            style={styles.notificationBadge}
+            onPress={() => router.push("/(main)/(tabs)/(dashboard)/alerts")}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir alertas"
+          >
+            <Text style={styles.bellIcon}>🔔</Text>
+            {notifications.some(n => !n.read) && (
+              <View style={styles.notificationDot} />
+            )}
+          </Pressable>
+          <Pressable
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            accessibilityRole="button"
+          >
+            <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Saludo componente */}
@@ -284,6 +320,11 @@ const styles = StyleSheet.create({
     width: 120,
     height: 40,
   },
+  topBarActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   notificationBadge: {
     width: 36,
     height: 36,
@@ -292,6 +333,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
+  },
+  logoutButton: {
+    minHeight: 36,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    backgroundColor: "#F3F4F6",
+  },
+  logoutButtonText: {
+    color: "#374151",
+    fontSize: 12,
+    fontWeight: "600",
   },
   bellIcon: {
     fontSize: 18,
