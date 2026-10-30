@@ -8,6 +8,7 @@ import {
 type AppButtonProps = {
   title: string;
   onPress: () => void;
+  disabled?: boolean;
   variant?: "primary" |
            "secondary"|
            "tertiary";
@@ -16,6 +17,7 @@ type AppButtonProps = {
 export default function AppButton({
   title,
   onPress,
+  disabled = false,
   variant = "primary",
 }: AppButtonProps) {
   return (
@@ -23,8 +25,11 @@ export default function AppButton({
       style={[
         styles.button,
         styles[variant],
+        disabled && styles.disabled,
       ]}
       onPress={onPress}
+      disabled={disabled}
+      accessibilityState={{ disabled }}
     >
       <Text
         style={[
@@ -46,6 +51,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 10,
     alignItems: "center",
+  },
+  disabled: {
+    opacity: 0.5,
   },
   primary: {
     backgroundColor: "#FACC15",

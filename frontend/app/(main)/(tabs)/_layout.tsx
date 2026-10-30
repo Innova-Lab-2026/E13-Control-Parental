@@ -32,7 +32,7 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="dispositivos"
+        name="(dispositivos)"
         options={{
           title: "Dispositivos",
           tabBarIcon: ({ focused, size }) => (
