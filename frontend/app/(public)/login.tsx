@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { View, Text, StyleSheet, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
-import AppInput from "../src/components/AppInput";
-import AppButton from "../src/components/AppButton";
-import AppAlert from "../src/components/AppAlert";
-import { loginResponsible } from "../src/services/auth";
+import AppInput from "../../src/components/AppInput";
+import AppButton from "../../src/components/AppButton";
+import AppAlert from "../../src/components/AppAlert";
+import { loginResponsible } from "../../src/services/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function LoginScreen() {
     try {
       const result = await loginResponsible({ email: email.trim(), password });
       router.replace({
-        pathname: "/dashboard",
+        pathname: "/(main)/(tabs)/(dashboard)",
         params: { name: result.responsible.name },
       });
     } catch (error) {
@@ -69,7 +69,7 @@ export default function LoginScreen() {
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require("../assets/protege-01.png")}
+          source={require("../../assets/protege-01.png")}
           style={styles.loteriaImage}
           resizeMode="contain"
         />
