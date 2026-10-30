@@ -6,28 +6,40 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import HistoryCard from "../../../src/components/historial/HistoryCard";
+import AppHeader from "../../../../src/components/AppHeader";
+import HistoryCard from "../../../../src/components/historial/HistoryCard";
 import HistoryFilters, {
   type HistoryCategory,
-} from "../../../src/components/historial/HistoryFilters";
-import { historyData } from "../../../src/data/historyData";
+} from "../../../../src/components/historial/HistoryFilters";
+import { getHistoryEvents } from "../../../../src/services/historyService";
 
 export default function HistorialScreen() {
+  const router = useRouter();
+  const { device: routeDevice } = useLocalSearchParams<{
+    device?: string | string[];
+  }>();
+  const selectedDevice = Array.isArray(routeDevice)
+    ? routeDevice[0]
+    : routeDevice;
   const [selectedCategory, setSelectedCategory] =
     useState<HistoryCategory>("all");
+  const [selectedUser, setSelectedUser] = useState(selectedDevice ?? "all");
+  const historyData = useMemo(() => getHistoryEvents(), []);
+  const users = useMemo(
+    () => [...new Set(historyData.map((event) => event.device))].sort(),
+    [historyData],
+  );
 
   const filteredEvents = useMemo(() => {
-    if (selectedCategory === "all") {
-      return historyData;
-    }
-
     return historyData.filter(
-      (event) => event.category === selectedCategory
+      (event) =>
+        (selectedCategory === "all" ||
+          event.category === selectedCategory) &&
+        (selectedUser === "all" || event.device === selectedUser),
     );
-  }, [selectedCategory]);
+  }, [historyData, selectedCategory, selectedUser]);
 
   const todayEvents = filteredEvents.filter(
     (event) => event.date === "Hoy"
@@ -43,7 +55,7 @@ export default function HistorialScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Historial</Text>
+        <AppHeader title="Historial" onBackPress={() => router.back()} />
         <Text style={styles.subtitle}>
           Revisá la actividad reciente de tus dispositivos.
         </Text>
@@ -51,12 +63,15 @@ export default function HistorialScreen() {
         <HistoryFilters
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
+          users={users}
+          selectedUser={selectedUser}
+          onUserChange={setSelectedUser}
         />
 
         {filteredEvents.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No hay eventos para esta categoría.
+              No hay eventos para los filtros seleccionados.
             </Text>
           </View>
         ) : (
@@ -66,7 +81,16 @@ export default function HistorialScreen() {
                 <Text style={styles.sectionTitle}>Hoy</Text>
 
                 {todayEvents.map((event) => (
-                  <HistoryCard key={event.id} {...event} />
+                  <HistoryCard
+                    key={event.id}
+                    {...event}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(main)/(tabs)/(historial)/[historyId]",
+                        params: { historyId: event.id },
+                      })
+                    }
+                  />
                 ))}
               </View>
             )}
@@ -76,7 +100,16 @@ export default function HistorialScreen() {
                 <Text style={styles.sectionTitle}>Ayer</Text>
 
                 {yesterdayEvents.map((event) => (
-                  <HistoryCard key={event.id} {...event} />
+                  <HistoryCard
+                    key={event.id}
+                    {...event}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(main)/(tabs)/(historial)/[historyId]",
+                        params: { historyId: event.id },
+                      })
+                    }
+                  />
                 ))}
               </View>
             )}
@@ -95,12 +128,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingBottom: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#242424",
-    marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,

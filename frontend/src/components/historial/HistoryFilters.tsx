@@ -6,6 +6,9 @@ export type HistoryCategory = "all" | "blocked" | "security" | "settings";
 type HistoryFiltersProps = {
   selectedCategory: HistoryCategory;
   onCategoryChange: (category: HistoryCategory) => void;
+  users: string[];
+  selectedUser: string;
+  onUserChange: (user: string) => void;
 };
 
 const categories: { label: string; value: HistoryCategory }[] = [
@@ -18,6 +21,9 @@ const categories: { label: string; value: HistoryCategory }[] = [
 export default function HistoryFilters({
   selectedCategory,
   onCategoryChange,
+  users,
+  selectedUser,
+  onUserChange,
 }: HistoryFiltersProps) {
   return (
     <View style={styles.container}>
@@ -50,6 +56,38 @@ export default function HistoryFilters({
           );
         })}
       </View>
+
+      <Text style={[styles.heading, styles.userHeading]}>
+        Filtrar por usuario
+      </Text>
+      <View style={styles.filters}>
+        {["Todos", ...users].map((user) => {
+          const value = user === "Todos" ? "all" : user;
+          const isSelected = selectedUser === value;
+
+          return (
+            <Pressable
+              key={value}
+              onPress={() => onUserChange(value)}
+              style={[
+                styles.filter,
+                isSelected && styles.filterSelected,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  isSelected && styles.filterTextSelected,
+                ]}
+              >
+                {user}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -63,6 +101,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333333",
     marginBottom: 10,
+  },
+  userHeading: {
+    marginTop: 16,
   },
   filters: {
     flexDirection: "row",

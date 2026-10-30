@@ -1,5 +1,5 @@
 
-import { View, Text, StyleSheet } from "react-native";
+import { Pressable, View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export type HistoryVariant =
@@ -14,6 +14,7 @@ type HistoryCardProps = {
   description: string;
   time: string;
   device: string;
+  onPress?: () => void;
 };
 
 const historyStyles = {
@@ -45,11 +46,17 @@ export default function HistoryCard({
   description,
   time,
   device,
+  onPress,
 }: HistoryCardProps) {
   const config = historyStyles[variant];
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && onPress && styles.pressed]}
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? "button" : undefined}
+    >
       <View
         style={[
           styles.iconContainer,
@@ -69,8 +76,11 @@ export default function HistoryCard({
         <Text style={styles.device}>{device}</Text>
       </View>
 
-      <Text style={styles.time}>{time}</Text>
-    </View>
+      <View style={styles.rightContent}>
+        <Text style={styles.time}>{time}</Text>
+        {onPress && <Text style={styles.arrow}>›</Text>}
+      </View>
+    </Pressable>
   );
 }
 
@@ -88,6 +98,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+  },
+  pressed: {
+    opacity: 0.75,
   },
   iconContainer: {
     width: 42,
@@ -116,5 +129,14 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 11,
     color: "#777777",
+  },
+  rightContent: {
+    alignItems: "flex-end",
+    gap: 8,
+  },
+  arrow: {
+    fontSize: 18,
+    color: "#9CA3AF",
+    fontWeight: "bold",
   },
 });

@@ -25,7 +25,7 @@ export default function AlertDetailScreen() {
 
   const handleViewHistory = () => {
     router.push({
-      pathname: "/(main)/(tabs)/historial",
+      pathname: "/(main)/(tabs)/(historial)",
       params: alert ? { device: alert.device } : undefined,
     });
   };

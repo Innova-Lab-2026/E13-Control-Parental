@@ -10,15 +10,8 @@ import DeviceItem from "../../../../src/components/DeviceItem";
 import AddDeviceButton from "../../../../src/components/AddDeviceButton";
 import GreetingHeader from "../../../../src/components/GreetingHeader";
 import { getDevices, type Device } from "../../../../src/services/deviceService";
-
-// --- INTERFACES PARA EL BACKEND ---
-interface HistoryLog {
-  id: string;
-  title: string;
-  subtitle: string;
-  time: string;
-  icon: string;
-}
+import HistoryCard from "../../../../src/components/historial/HistoryCard";
+import { getHistoryEvents } from "../../../../src/services/historyService";
 
 // TODO BACKEND: Estructura esperada para el modelo de notificaciones de la API
 interface NotificationItem {
@@ -64,24 +57,7 @@ export default function DashboardScreen() {
     }, []),
   );
 
-  const [historyLogs] = useState<HistoryLog[]>([
-    {
-      id: "1",
-      title: "Sitio bloqueado",
-      subtitle: "Ramiro • apostando-sitio.com",
-      time: "14:25",
-      icon: "🚫",
-    },
-    {
-      id: "2",
-      title: "Configuración actualizada",
-      subtitle: "Paula • Nuevas restricciones",
-      time: "12:30",
-      icon: "⚙️",
-    },
-  ]);
-
-  
+  const historyLogs = getHistoryEvents().slice(0, 2);
 
   // TODO BACKEND: Función para marcar notificación como leída en la API (PATCH /api/v1/notifications/:id)
   const handleMarkAsRead = (id: string) => {
@@ -189,28 +165,27 @@ export default function DashboardScreen() {
       {/* Encabezado sección Historial */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Historial</Text>
-        <Pressable onPress={() => router.push("/tutor/history")}>
+        <Pressable onPress={() => router.push("/(main)/(tabs)/(historial)")}>
           <Text style={styles.linkText}>Ver todo ›</Text>
         </Pressable>
       </View>
 
-      {/* FlatList secundario para el historial */}
-      <FlatList
-        data={historyLogs}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <View style={styles.historyCard}>
-            <Text style={styles.historyIcon}>{item.icon}</Text>
-            <View style={styles.historyTextContainer}>
-              <Text style={styles.historyTitle}>{item.title}</Text>
-              <Text style={styles.historySubtitle}>{item.subtitle}</Text>
-              <Text style={styles.historyTime}>{item.time}</Text>
-            </View>
-            <Text style={styles.historyArrow}>›</Text>
-          </View>
-        )}
-      />
+      {historyLogs.map((event) => (
+        <HistoryCard
+          key={event.id}
+          variant={event.variant}
+          title={event.title}
+          description={event.description}
+          time={`${event.date} · ${event.time}`}
+          device={event.device}
+          onPress={() =>
+            router.push({
+              pathname: "/(main)/(tabs)/(historial)/[historyId]",
+              params: { historyId: event.id },
+            })
+          }
+        />
+      ))}
     </View>
   );
 
@@ -427,42 +402,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   alertArrow: {
-    fontSize: 18,
-    color: "#9CA3AF",
-  },
-  historyCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 10,
-    gap: 12,
-  },
-  historyIcon: {
-    fontSize: 20,
-  },
-  historyTextContainer: {
-    flex: 1,
-  },
-  historyTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#DC2626",
-  },
-  historySubtitle: {
-    fontSize: 13,
-    color: "#374151",
-    marginTop: 2,
-  },
-  historyTime: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    marginTop: 2,
-  },
-  historyArrow: {
     fontSize: 18,
     color: "#9CA3AF",
   },
