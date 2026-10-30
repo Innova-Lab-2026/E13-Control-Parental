@@ -6,10 +6,10 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Componentes reutilizables reales del proyecto
-import DeviceItem from "../../../src/components/DeviceItem";
-import AddDeviceButton from "../../../src/components/AddDeviceButton";
-import GreetingHeader from "../../../src/components/GreetingHeader";
-import { getDevices, type Device } from "../../../src/services/deviceService";
+import DeviceItem from "../../../../src/components/DeviceItem";
+import AddDeviceButton from "../../../../src/components/AddDeviceButton";
+import GreetingHeader from "../../../../src/components/GreetingHeader";
+import { getDevices, type Device } from "../../../../src/services/deviceService";
 
 // --- INTERFACES PARA EL BACKEND ---
 interface HistoryLog {
@@ -97,7 +97,7 @@ export default function DashboardScreen() {
       <View style={styles.topBar}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../../assets/protege-01.png")}
+            source={require("../../../../assets/protege-01.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -106,7 +106,7 @@ export default function DashboardScreen() {
         {/* Botón interactivo para abrir Mis Alertas */}
         <Pressable
           style={styles.notificationBadge}
-          onPress={() => router.push("/tutor/alerts")}
+          onPress={() => router.push("/(main)/(tabs)/(dashboard)/alerts")}
         >
           <Text style={styles.bellIcon}>🔔</Text>
           {notifications.some(n => !n.read) && <View style={styles.notificationDot} />}
@@ -166,16 +166,12 @@ export default function DashboardScreen() {
       {/* TODO BACKEND: Dinamizar esta tarjeta con la alerta crítica o no leída de GET /api/v1/alerts */}
       <Pressable
         style={styles.alertCard}
-        onPress={() => router.push({
-          pathname: "/tutor/alert-detail",
-          params: {
-            title: "¡Requiere tu atención!",
-            subtitle: "Paula desinstaló la aplicación",
-            device: "Paula",
-            time: "13:00",
-            type: "danger"
-          }
-        })}
+        onPress={() =>
+          router.push({
+            pathname: "/(main)/(tabs)/(dashboard)/[alertId]",
+            params: { alertId: "1" },
+          })
+        }
       >
         <View style={styles.alertIconContainer}>
           <Text style={styles.alertIcon}>⚠️</Text>
