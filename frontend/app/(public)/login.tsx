@@ -48,7 +48,7 @@ export default function LoginScreen() {
     try {
       const result = await loginResponsible({ email: email.trim(), password });
       router.replace({
-        pathname: "/dashboard",
+        pathname: "/(main)/(tabs)/(dashboard)",
         params: { name: result.responsible.name },
       });
     } catch (error) {

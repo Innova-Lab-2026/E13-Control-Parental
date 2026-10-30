@@ -1,7 +1,6 @@
 // app/tutor/dashboard.tsx
 import React, { useCallback, useState } from "react";
 import {
-  Alert,
   View,
   Text,
   StyleSheet,
@@ -69,18 +68,7 @@ export default function DashboardScreen() {
   const historyLogs = getHistoryEvents().slice(0, 2);
 
   const handleLogout = () => {
-    Alert.alert(
-      "Cerrar sesión",
-      "¿Quieres salir de tu cuenta?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Cerrar sesión",
-          style: "destructive",
-          onPress: () => router.replace("/login"),
-        },
-      ],
-    );
+    router.replace("/(public)/login");
   };
 
   // TODO BACKEND: Función para marcar notificación como leída en la API (PATCH /api/v1/notifications/:id)
@@ -119,6 +107,7 @@ export default function DashboardScreen() {
             style={styles.logoutButton}
             onPress={handleLogout}
             accessibilityRole="button"
+            accessibilityLabel="Cerrar sesión"
           >
             <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
           </Pressable>
