@@ -1,8 +1,30 @@
+/**
+ * Perfil del usuario devuelto por la API.
+ * - `responsable`: adulto a cargo (gestiona dispositivos y recibe alertas).
+ * - `tutor`: usuario encargado del accompagnement sobre el dispositivo protegido.
+ */
+export type UserRole = 'responsable' | 'tutor';
+
+/**
+ * Modo de uso de la aplicación, elegido en la pantalla "Selección de Modo".
+ * - `adulto`: el usuario opera como responsable y accede a su dashboard.
+ * - `dispositivo_protegido`: el usuario opera desde el dispositivo que se protege.
+ */
+export type UserMode = 'adulto' | 'dispositivo_protegido';
+
+export const USER_ROLES: UserRole[] = ['responsable', 'tutor'];
+export const USER_MODES: UserMode[] = ['adulto', 'dispositivo_protegido'];
+
 export interface Responsible {
   id: string;
   email: string;
   passwordHash: string;
   name: string;
+  telefono?: string;
+  /** Perfil asociado al usuario. Se deriva de `esResponsable` al registrarse. */
+  rol: UserRole;
+  /** Modo de uso persistido. Se actualiza mediante PATCH /api/auth/me/mode. */
+  mode: UserMode;
   createdAt: string;
 }
 
