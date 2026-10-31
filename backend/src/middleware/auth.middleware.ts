@@ -44,6 +44,15 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 /**
  * Restringe el acceso a los perfiles indicados.
  * Debe ejecutarse siempre después de `authenticateToken`.
+ *
+ * ⚠️ No aplicar al flujo de "Modo Dispositivo Protegido": el dispositivo
+ * protegido opera con la cuenta del adulto responsable, por lo que filtrar por
+ * `rol` bloquearía también el celular del menor. La autorización de las
+ * operaciones críticas la resuelve el PIN del adulto.
+ *
+ * En el alcance del MVP tampoco hay diferencias de permisos entre `responsable`
+ * y `tutor`: ambos son adultos administradores. El middleware queda disponible
+ * para el escalamiento institucional del Future Scope.
  */
 export const authorizeRoles = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
