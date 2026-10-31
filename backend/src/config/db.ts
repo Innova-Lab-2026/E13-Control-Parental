@@ -1,5 +1,20 @@
+import {
+  CURRENT_OFFICIAL_BLOCKLIST,
+  OfficialBlocklistSnapshot
+} from './blocklistSource';
+
 /**
  * Perfil del usuario devuelto por la API.
+ *
+ * En el alcance del MVP **no hay diferencias de permisos** entre ambos perfiles:
+ * los dos son adultos administradores de la protección. La autorización de las
+ * operaciones críticas se resuelve con el PIN del adulto responsable
+ * (PATCH /api/auth/pin y POST /api/devices/confirm-link).
+ *
+ * La distinción queda preparada para el escalamiento institucional del Future
+ * Scope (dashboard institucional, administración centralizada), donde sí se
+ * necesitarán niveles de acceso diferenciados.
+ *
  * - `responsable`: adulto a cargo (gestiona dispositivos y recibe alertas).
  * - `tutor`: usuario encargado del accompagnement sobre el dispositivo protegido.
  */
@@ -43,7 +58,46 @@ export interface BlocklistItem {
   domain: string;
   type: 'LOTBA_OFFICIAL' | 'CUSTOM';
   addedBy?: string; // responsibleId if CUSTOM, null/undefined if LOTBA_OFFICIAL
+  /** Categoría funcional del bloqueo. Ej.: "Apuestas", "Personalizado". */
+  categoria: string;
+  /** Período del listado oficial al que pertenece el dominio (solo LOTBA_OFFICIAL). */
+  period?: string;
+  /** Última vez que se actualizó la lista que contiene el dominio. */
+  updatedAt: string;
   createdAt: string;
+}
+
+/** Registro de auditoría de cada sincronización de la lista oficial de LOTBA. */
+export interface BlocklistSyncLog {
+  id: string;
+  /** Período del listado cargado. */
+  version: string;
+  /** Origen declarado del listado. */
+  source: string;
+  /** Fecha de la sincronización. */
+  updatedAt: string;
+  /** Cantidad de dominios oficiales vigentes luego de la sincronización. */
+  totalOfficial: number;
+  /** Dominios que se agregaron respecto de la lista anterior. */
+  added: string[];
+  /** Dominios que se quitaron respecto de la lista anterior. */
+  removed: string[];
+  /** Identificador de quien ejecutó la sincronización. */
+  requestedBy: string;
+}
+
+/** Estado de actualización de la lista de bloqueo, para mostrarlo en la app. */
+export interface BlocklistStatus {
+  /** Período del listado oficial vigente. */
+  version: string;
+  /** Origen del listado oficial. */
+  source: string;
+  /** Fecha de la última sincronización efectiva. */
+  lastUpdated: string;
+  /** Cantidad de dominios oficiales vigentes. */
+  totalOfficial: number;
+  /** Cantidad de dominios personalizados del responsable autenticado. */
+  totalCustom: number;
 }
 
 export interface EventItem {
@@ -65,21 +119,43 @@ export interface AlertItem {
   createdAt: string;
 }
 
+/**
+ * Construye los ítems oficiales a partir de un snapshot del listado de LOTBA.
+ * La lista oficial nunca se mezcla con los dominios personalizados del usuario.
+ */
+export const buildOfficialBlocklistItems = (
+  snapshot: OfficialBlocklistSnapshot
+): BlocklistItem[] =>
+  snapshot.domains.map((entry, index) => ({
+    id: `lotba-${index + 1}`,
+    domain: entry.domain.toLowerCase().trim(),
+    type: 'LOTBA_OFFICIAL',
+    categoria: entry.categoria,
+    period: snapshot.version,
+    updatedAt: snapshot.updatedAt,
+    createdAt: snapshot.updatedAt
+  }));
+
 class Database {
   public responsables: Responsible[] = [];
   public devices: Device[] = [];
-  public blocklist: BlocklistItem[] = [
-    // Seed official LOTBA domains (mock examples of illegal betting sites)
-    { id: 'lotba-1', domain: 'apuestasilegalesba.com', type: 'LOTBA_OFFICIAL', createdAt: new Date().toISOString() },
-    { id: 'lotba-2', domain: 'casinoilegalar.net', type: 'LOTBA_OFFICIAL', createdAt: new Date().toISOString() },
-    { id: 'lotba-3', domain: 'ruletasin18.com', type: 'LOTBA_OFFICIAL', createdAt: new Date().toISOString() },
-    { id: 'lotba-4', domain: 'betnoregulated.org', type: 'LOTBA_OFFICIAL', createdAt: new Date().toISOString() },
-  ];
+
+  /**
+   * Lista de bloqueo vigente. Los ítems oficiales provienen de la fuente LOTBA
+   * (`config/blocklistSource`) y los personalizados son agregados por cada
+   * adulto responsable.
+   */
+  public blocklist: BlocklistItem[] = [];
+
+  /** Historial de sincronizaciones de la lista oficial de LOTBA. */
+  public blocklistSyncLog: BlocklistSyncLog[] = [];
+
   public events: EventItem[] = [];
   public alerts: AlertItem[] = [];
 
   constructor() {
-    // Reset or initialize if needed
+    // La lista oficial se siembra desde la fuente versionada.
+    this.blocklist = buildOfficialBlocklistItems(CURRENT_OFFICIAL_BLOCKLIST);
   }
 }
 
