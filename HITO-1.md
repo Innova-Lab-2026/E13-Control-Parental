@@ -2,7 +2,41 @@
 
 **Estado:** Issues 1, 2, 3 y 4 cerrados en backend ✅
 **Rama:** `Hito-1---Onboarding,-Autenticacion-y-Seleccion-de-Rol`
-**Pruebas:** 38/38 pasando · build TypeScript sin errores
+**Pruebas:** 59/59 pasando · build TypeScript sin errores
+
+---
+
+## Decisiones confirmadas por el equipo
+
+### 1. Tres conceptos, no dos
+
+| Concepto | Valores | Dónde vive | Significado |
+|----------|---------|------------|-------------|
+| **Rol** | `responsable` \| `tutor` | Servidor (JWT + DB) | Tipo de cuenta del **adulto** |
+| **Modo** | `adulto` \| `dispositivo_protegido` | Cliente (Storage local) + espejo en servidor | Contexto en el que opera la app ahora |
+| **Dispositivo** | registro con `status` | Servidor | El menor **nunca se registra**: es una entidad, no un usuario |
+
+El dispositivo protegido opera **con la cuenta del adulto responsable**, por eso el rol y el modo
+son ejes independientes.
+
+### 2. Sin diferencias de permisos en el MVP
+
+En el alcance del MVP `responsable` y `tutor` son **ambos adultos administradores** de la
+protección. La autorización de las operaciones críticas la resuelve el **PIN** del adulto
+(`PATCH /api/auth/pin` + `POST /api/devices/confirm-link`).
+
+`authorizeRoles` queda implementado y testeado como **infraestructura para el escalamiento
+institucional del Future Scope**, pero **no se aplica a ninguna ruta del MVP**.
+
+> ⚠️ **No aplicar `authorizeRoles` al flujo de "Modo Dispositivo Protegido"**: como el dispositivo
+> usa la cuenta del adulto, filtrar por rol bloquearía también el celular del menor.
+
+### 3. La lista oficial de LOTBA es un listado estático mensual
+
+No existe API externa de actualización automática, así que el listado oficial se mantiene como un
+**listado estático versionado** en el backend (`src/config/blocklistSource.ts`), con período,
+origen y fecha de publicación. El endpoint de sincronización queda preparado para cargar cada
+período nuevo cuando el equipo reciba el listado.
 
 ---
 
@@ -123,7 +157,7 @@ tocar las pantallas para no interferir con el trabajo en curso del equipo de fro
 
 ```bash
 cd backend
-npm test        # 38/38 pruebas: 28 nuevas de auth + 10 preexistentes de integración
+npm test        # 59/59 pruebas: auth, blocklist e integración general
 npm run build   # compilación TypeScript sin errores
 ```
 
@@ -132,6 +166,7 @@ la app: registro → login → perfil → cambio de modo → perfil. Todas las c
 según lo esperado.
 
 Documentación de la API: `backend/README.md`.
+Colección de pruebas de API: `backend/postman/BA-Protege.postman_collection.json`.
 
 ---
 

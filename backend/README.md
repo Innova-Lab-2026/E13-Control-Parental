@@ -24,8 +24,17 @@ npm test               # pruebas de integración (jest + supertest)
 | `PORT` | Puerto del servidor | `3000` |
 | `NODE_ENV` | `development` \| `production` \| `test` | — |
 | `JWT_SECRET` | Clave de firma de los JWT | clave por defecto (**cambiar en despliegue**) |
+| `ADMIN_SECRET` | Secreto de las operaciones administrativas (sincronización de la lista oficial de LOTBA) | sin valor (la operación queda deshabilitada con `503`) |
 
 > Si `JWT_SECRET` no está definido, el servidor emite un warning al arrancar y usa la clave por defecto. **Nunca despliegues así.**
+
+### Colección Postman
+
+`postman/BA-Protege.postman_collection.json` cubre el flujo completo del MVP, con tests
+automáticos en cada request y variables que se encadenan (`token`, `deviceId`, `customDomainId`).
+
+Para importarla: Postman → **Import** → seleccionar el archivo. Configurá `baseUrl` y `adminSecret`
+en las variables de la colección.
 
 ---
 
@@ -196,11 +205,12 @@ npm test
 | Suite | Cubre |
 |-------|--------|
 | `src/__tests__/auth.test.ts` | BK-1.1 registro · BK-1.2 login · BK-1.3 modo de usuario · BK-1.4 middleware y roles |
+| `src/__tests__/blocklist.test.ts` | Consulta de dominios · dominios personalizados · estado de actualización · sincronización de la lista oficial |
 | `src/__tests__/app.test.ts` | Integración de health, auth, dispositivos, blocklist y eventos |
 
 ---
 
-## Endpoints de los hitos 2 y 3
+## Midestones 2 y 3
 
 Ya implementados en el backend (aún sin pantallas conectadas en el cliente):
 
@@ -211,6 +221,8 @@ Ya implementados en el backend (aún sin pantallas conectadas en el cliente):
 | `PATCH` | `/api/devices/:id/status` | Activa/desactiva un dispositivo |
 | `POST` | `/api/blocklist/check` | Verifica si un dominio está bloqueado (público) |
 | `GET` | `/api/blocklist` | Lista de bloqueo oficial + personalizada 🔒 |
+| `GET` | `/api/blocklist/status` | Estado de actualización de la lista de bloqueo 🔒 |
+| `POST` | `/api/blocklist/sync/official` | Sincroniza el listado oficial de LOTBA ⚙️ |
 | `POST` | `/api/blocklist/custom` | Agrega un dominio personalizado 🔒 |
 | `DELETE` | `/api/blocklist/custom/:id` | Elimina un dominio personalizado 🔒 |
 | `POST` | `/api/events` | Registra un evento de seguridad |
@@ -218,4 +230,127 @@ Ya implementados en el backend (aún sin pantallas conectadas en el cliente):
 | `GET` | `/api/events/alerts` | Alertas del responsable 🔒 |
 | `PATCH` | `/api/events/alerts/:id/read` | Marca una alerta como leída 🔒 |
 
-🔒 = requiere `Authorization: Bearer <JWT>`.
+🔒 = requiere `Authorization: Bearer <JWT>` · ⚙️ = requiere `x-admin-secret`.
+
+---
+
+### `POST /api/blocklist/check` (público)
+
+Es la ruta que consume el **servicio local de VPN/DNS** del dispositivo protegido, por lo que no
+requiere JWT. Acepta el dominio pelado o una URL completa: la comparación es por subcadena y
+case-insensitive.
+
+**Request**
+
+```json
+{ "domain": "https://www.apuestasilegalesba.com/juego" }
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "domain": "https://www.apuestasilegalesba.com/juego",
+  "isBlocked": true,
+  "blocked": true,
+  "matchType": "LOTBA_OFFICIAL",
+  "categoria": "Apuestas",
+  "matchedDomain": "apuestasilegalesba.com"
+}
+```
+
+| Campo | Descripción |
+|-------|-------------|
+| `isBlocked` | Indica si el dominio está bloqueado. |
+| `blocked` | Alias de `isBlocked`, en línea con el contrato del diagrama de secuencia. |
+| `matchType` | `LOTBA_OFFICIAL` \| `CUSTOM` \| `null`. |
+| `categoria` | Categoría del bloqueo (ej. `"Apuestas"`, `"Personalizado"`) o `null`. |
+| `matchedDomain` | Dominio exacto de la regla que coincidió, o `null`. |
+
+---
+
+## Lista oficial de LOTBA
+
+No existe API externa de actualización automática: el listado oficial se recibe como
+**listado estático mensual** y lo mantiene el equipo.
+
+### Fuente versionada
+
+`src/config/blocklistSource.ts` es la fuente de verdad. Contiene el período (`version`),
+el origen (`source`), la fecha de publicación (`updatedAt`) y los dominios con su categoría.
+Para cargar un período nuevo alcanza con actualizar ese módulo **o** con llamar al endpoint
+de sincronización.
+
+> ⚠️ Los dominios actuales son **ficticios** (simulan el listado real de LOTBA) y deben
+> reemplazarse por los oficiales cuando el equipo reciba el primer listado.
+
+### `POST /api/blocklist/sync/official` ⚙️
+
+Sincroniza el listado oficial. Reemplaza por completo los dominios oficiales, **conserva
+intactos los personalizados** de cada adulto responsable y registra la operación en el log
+de auditoría (`db.blocklistSyncLog`), cubriendo el requisito del MVP de registrar la
+actualización de la lista de bloqueo.
+
+**Headers:** `x-admin-secret: <ADMIN_SECRET>` · `x-admin-requested-by: <quien>`
+
+**Request (opcional — sin cuerpo recarga la fuente versionada vigente)**
+
+```json
+{
+  "version": "2026-11",
+  "source": "LOTBA - listado oficial mensual",
+  "updatedAt": "2026-11-01T00:00:00.000Z",
+  "domains": [
+    { "domain": "apuestasilegalesba.com", "categoria": "Apuestas" }
+  ]
+}
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Official LOTBA blocklist synchronized successfully",
+  "status": { "version": "2026-11", "source": "...", "lastUpdated": "...", "totalOfficial": 1, "totalCustom": 0 },
+  "sync": {
+    "version": "2026-11",
+    "source": "...",
+    "updatedAt": "...",
+    "totalOfficial": 1,
+    "added": ["apuestasilegalesba.com"],
+    "removed": ["ruletasin18.com"]
+  }
+}
+```
+
+**Errores:** `401` sin secreto o secreto incorrecto · `503` si `ADMIN_SECRET` no está configurado.
+
+> Es una **operación administrativa interna**, no una función del perfil del adulto responsable:
+> el listado oficial no puede modificarse desde la app.
+
+### `GET /api/blocklist/status` 🔒
+
+```json
+{
+  "version": "2026-10",
+  "source": "LOTBA - listado oficial mensual (simulado)",
+  "lastUpdated": "2026-10-01T00:00:00.000Z",
+  "totalOfficial": 4,
+  "totalCustom": 2
+}
+```
+
+Permite mostrar en la app el estado de actualización de la lista de bloqueo.
+
+---
+
+## Roles y modos
+
+| Concepto | Valores | Dónde vive | Significado |
+|----------|---------|------------|-------------|
+| **Rol** | `responsable` \| `tutor` | Servidor (JWT + DB) | Tipo de cuenta del **adulto**. En el MVP **no hay diferencias de permisos** entre ambos: los dos administran la protección. La autorización de las operaciones críticas la resuelve el **PIN**. |
+| **Modo** | `adulto` \| `dispositivo_protegido` | Cliente (Storage local) + espejo en servidor | Contexto en el que está operando la app ahora. El dispositivo protegido opera **con la cuenta del adulto**. |
+| **Dispositivo** | registro con `status` | Servidor | El menor **nunca se registra**: es una entidad `device`, no un usuario. |
+
+> ⚠️ `authorizeRoles` **no debe aplicarse** al flujo de "Modo Dispositivo Protegido": como el
+> dispositivo usa la cuenta del adulto, filtrar por rol bloquearía también el celular del menor.
